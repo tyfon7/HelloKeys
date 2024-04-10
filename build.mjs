@@ -100,6 +100,9 @@ async function main() {
         const projectName = createProjectName(packageJson);
         logger.log("success", `Project name created: ${projectName}`);
 
+        // Create the short name
+        const projectShortName = createShortProjectName(packageJson);
+
         // Remove the old distribution directory and create a fresh one.
         const distDir = await removeOldDistDirectory(currentDir);
         logger.log("info", "Distribution directory successfully cleaned.");
@@ -117,7 +120,7 @@ async function main() {
         // Create a zip archive of the project files.
         logger.log("info", "Beginning folder compression...");
         const zipFilePath = path.join(path.dirname(projectDir), `${projectName}.zip`);
-        await createZipFile(projectDir, zipFilePath, "user/mods/" + projectName);
+        await createZipFile(projectDir, zipFilePath, "user/mods/" + projectShortName);
         logger.log("success", "Archive successfully created.");
         logger.log("info", zipFilePath);
 
@@ -214,7 +217,7 @@ async function loadPackageJson(currentDir) {
 
 /**
  * Constructs a descriptive name for the mod package using details from the `package.json` file. The name is created by
- * concatenating the project name, version, and a timestamp, resulting in a unique and descriptive file name for each
+ * concatenating the project author, name, and version, resulting in a unique and descriptive file name for each
  * build. This name is used as the base name for the temporary working directory and the final ZIP archive, helping to
  * identify different versions of the mod package easily.
  *
@@ -229,6 +232,23 @@ function createProjectName(packageJson) {
 
     // Ensure the name is lowercase, as per the package.json specification.
     return `${author}-${name}-${version}`.toLowerCase();
+}
+
+/**
+ * Constructs a descriptive name for the mod package using details from the `package.json` file. The name is created by
+ * concatenating the project author, and name, with no version. This is used for the folder structure within the zip, so 
+ * new versions replace old ones.
+
+ * @param {Object} packageJson - A JSON object containing the contents of the `package.json` file.
+ * @returns {string} A string representing the constructed project name.
+ */
+function createShortProjectName(packageJson) {
+    // Remove any non-alphanumeric characters from the author and name.
+    const author = packageJson.author.replace(/\W/g, "");
+    const name = packageJson.name.replace(/\W/g, "");
+
+    // Ensure the name is lowercase, as per the package.json specification.
+    return `${author}-${name}`.toLowerCase();
 }
 
 /**
